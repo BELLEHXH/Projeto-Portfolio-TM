@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Portfólio | Detector de Máscara</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#180000,#3d0000,#7a0000);
+    color:white;
+    overflow-x:hidden;
+}
+
+header{
+    width:100%;
+    padding:25px 10%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:fixed;
+    top:0;
+    backdrop-filter:blur(12px);
+    background:rgba(0,0,0,.3);
+    z-index:999;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+    color:#ff4b4b;
+}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    margin-left:25px;
+    transition:.3s;
+}
+
+nav a:hover{
+    color:#ff4b4b;
+}
+
+.hero{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    flex-direction:column;
+    padding:100px 20px;
+}
+
+.hero h1{
+    font-size:60px;
+}
+
+.hero h1 span{
+    color:#ff4b4b;
+}
+
+.hero p{
+    margin-top:20px;
+    max-width:650px;
+    color:#ddd;
+    line-height:1.7;
+}
+
+button{
+    margin-top:35px;
+    padding:15px 40px;
+    border:none;
+    border-radius:40px;
+    background:#ff2d55;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+    transition:.3s;
+    box-shadow:0 0 20px rgba(255,0,0,.4);
+}
+
+button:hover{
+    transform:translateY(-5px);
+    background:#ff4d4d;
+}
+
+section{
+    padding:100px 10%;
+}
+
+.card{
+    background:rgba(255,255,255,.08);
+    backdrop-filter:blur(20px);
+    border-radius:20px;
+    padding:35px;
+    margin-top:30px;
+    box-shadow:0 15px 35px rgba(0,0,0,.4);
+}
+
+.card h2{
+    color:#ff5f5f;
+    margin-bottom:20px;
+}
+
+#webcam-container{
+    margin-top:30px;
+    display:flex;
+    justify-content:center;
+}
+
+canvas{
+    border-radius:20px;
+    border:4px solid #ff3d3d;
+    box-shadow:0 0 35px rgba(255,0,0,.5);
+}
+
+#label-container{
+    margin-top:20px;
+}
+
+#label-container div{
+    margin:8px;
+    padding:10px;
+    background:rgba(255,255,255,.08);
+    border-radius:10px;
+}
+
+footer{
+    padding:30px;
+    text-align:center;
+    background:#130000;
+    color:#bbb;
+}
+
+</style>
+
+</head>
+<body>
+
+<header>
+
+<div class="logo">Meu Portfólio</div>
+
+<nav>
+<a href="#">Início</a>
+<a href="#">Projetos</a>
+<a href="#">Contato</a>
+</nav>
+
+</header>
+
+<section class="hero">
+
+<h1>Detector de <span>Máscara</span></h1>
+
+<p>
+Projeto desenvolvido utilizando TensorFlow.js e Google Teachable Machine
+para realizar reconhecimento em tempo real através da webcam.
+</p>
+
+<button onclick="init()">Iniciar Detector</button>
+
+</section>
+
+<section>
+
+<div class="card">
+
+<h2>Visualização da Webcam</h2>
+
+<div id="webcam-container"></div>
+
+<div id="label-container"></div>
+
+</div>
+
+</section>
+
+<footer>
+
+© 2026 • Desenvolvido com HTML, CSS, JavaScript e TensorFlow.js
+
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+<script>
+
+const URL = "https://teachablemachine.withgoogle.com/models/a3NcgpOH9l/";
+
+let model, webcam, labelContainer, maxPredictions;
+
+async function init(){
+
+const modelURL = URL + "model.json";
+const metadataURL = URL + "metadata.json";
+
+model = await tmImage.load(modelURL, metadataURL);
+
+maxPredictions = model.getTotalClasses();
+
+const flip = true;
+
+webcam = new tmImage.Webcam(300,300,flip);
+
+await webcam.setup();
+
+await webcam.play();
+
+window.requestAnimationFrame(loop);
+
+document.getElementById("webcam-container").innerHTML="";
+
+document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+labelContainer=document.getElementById("label-container");
+
+labelContainer.innerHTML="";
+
+for(let i=0;i<maxPredictions;i++){
+
+labelContainer.appendChild(document.createElement("div"));
+
+}
+
+}
+
+async function loop(){
+
+webcam.update();
+
+await predict();
+
+window.requestAnimationFrame(loop);
+
+}
+
+async function predict(){
+
+const prediction = await model.predict(webcam.canvas);
+
+for(let i=0;i<maxPredictions;i++){
+
+const classPrediction =
+prediction[i].className + " : " +
+(prediction[i].probability*100).toFixed(1)+"%";
+
+labelContainer.childNodes[i].innerHTML=classPrediction;
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
